@@ -1,0 +1,6 @@
+{
+  "name": "Housika Authentication Backend",
+  "description": "Production-ready Cloudflare Workers authentication backend with Hono, multi-D1 database architecture, and strict security controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

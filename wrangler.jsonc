@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "housika-auth-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB_ACCOUNTS",
+      "database_name": "housika-accounts",
+      "database_id": "REPLACE_WITH_ACCOUNTS_D1_ID"
+    },
+    {
+      "binding": "DB_PROFILES",
+      "database_name": "housika-profiles",
+      "database_id": "REPLACE_WITH_PROFILES_D1_ID"
+    },
+    {
+      "binding": "DB_SESSIONS",
+      "database_name": "housika-sessions",
+      "database_id": "REPLACE_WITH_SESSIONS_D1_ID"
+    },
+    {
+      "binding": "DB_COUNTRIES",
+      "database_name": "housika-countries",
+      "database_id": "REPLACE_WITH_COUNTRIES_D1_ID"
+    },
+    {
+      "binding": "DB_CHALLENGES",
+      "database_name": "housika-challenges",
+      "database_id": "REPLACE_WITH_CHALLENGES_D1_ID"
+    },
+    {
+      "binding": "DB_AUDIT",
+      "database_name": "housika-audit",
+      "database_id": "REPLACE_WITH_AUDIT_D1_ID"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV_RATE_LIMIT",
+      "id": "REPLACE_WITH_KV_RATE_LIMIT_ID"
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "housika_auth_analytics"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_URL": "https://auth.housika.co.ke",
+    "BCRYPT_ROUNDS": "10",
+    "ZEPTOMAIL_FROM_ADDRESS": "accounts@housika.co.ke",
+    "ZEPTOMAIL_FROM_NAME": "Housika Accounts",
+    "GOOGLE_CLIENT_ID": ""
+  }
+}
