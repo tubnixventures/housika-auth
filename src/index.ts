@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { registerRoutes } from './routes.ts';
 import { sendError } from './utils/response.ts';
 import { AppError } from './utils/errors.ts';
 import { captureSystemError } from './utils/error-logger.ts';
 import { securityHeadersMiddleware } from './middleware/security-headers.ts';
+import { secureCorsMiddleware } from './middleware/cors.ts';
 import { analyticsMiddleware } from './middleware/analytics.ts';
 import { globalRateLimit } from './middleware/rate-limit.ts';
 import type { Bindings } from './types/env.ts';
@@ -14,19 +14,13 @@ const app = new Hono<{ Bindings: Bindings }>();
 // 1. Enterprise Defense-in-depth security headers & distributed trace ID
 app.use('*', securityHeadersMiddleware);
 
-// 2. Security and CORS middleware
-app.use('*', cors({
-  origin: '*',
-  allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposeHeaders: ['Content-Length', 'X-Housika-Trace-Id'],
-  maxAge: 86400,
-}));
+// 2. Priority 3: Configurable Trusted-Origin CORS (no wildcard)
+app.use('*', secureCorsMiddleware());
 
 // 3. Real-time Cloudflare Analytics Engine request logging
 app.use('*', analyticsMiddleware);
 
-// 4. Global Cloudflare KV rate limiting against brute force attacks
+// 4. Global Cloudflare KV rate limiting against brute force attacks (120 req/min)
 app.use('*', globalRateLimit(120, 60));
 
 // Root and health endpoints

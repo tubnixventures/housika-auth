@@ -6,7 +6,7 @@ Each table lives in its own isolated Cloudflare D1 database instance.
 
 | Database Name | D1 Binding | Migration File | Purpose |
 |---------------|------------|----------------|---------|
-| `housika-accounts` | `DB_ACCOUNTS` | `sql/accounts/0001_create_accounts.sql`<br>`sql/accounts/0002_google_oauth_support.sql` | Account credentials, Google SSO, roles, levels |
+| `housika-accounts` | `DB_ACCOUNTS` | `sql/accounts/0001_create_accounts.sql`<br>`sql/accounts/0002_google_oauth_support.sql`<br>`sql/accounts/0003_allow_housika_account_type.sql` | Account credentials, Google SSO, platform staff, roles |
 | `housika-profiles` | `DB_PROFILES` | `sql/profiles/0001_create_profiles.sql` | User profiles, display names, currencies |
 | `housika-sessions` | `DB_SESSIONS` | `sql/sessions/0001_create_sessions.sql` | Refresh token hashes, session tracking |
 | `housika-countries` | `DB_COUNTRIES` | `sql/countries/0001_create_countries.sql`<br>`sql/countries/0002_seed_countries.sql` | Country settings, fees, gateways |
@@ -30,6 +30,7 @@ npx wrangler d1 create housika-audit
 # Accounts
 npx wrangler d1 execute housika-accounts --file=./sql/accounts/0001_create_accounts.sql
 npx wrangler d1 execute housika-accounts --file=./sql/accounts/0002_google_oauth_support.sql
+npx wrangler d1 execute housika-accounts --file=./sql/accounts/0003_allow_housika_account_type.sql
 
 # Profiles
 npx wrangler d1 execute housika-profiles --file=./sql/profiles/0001_create_profiles.sql

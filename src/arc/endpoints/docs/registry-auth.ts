@@ -28,8 +28,8 @@ export const AUTH_ENDPOINTS: EndpointDoc[] = [
     requestBody: { identifier: 'string', password: 'string' },
     statusCodes: { 200: 'Authenticated with tokens', 401: 'Invalid credentials', 403: 'Disabled' },
     isIdempotent: false,
-    rateLimit: '10 req/min',
-    securityNotes: 'Generic error messages protect against account enumeration.',
+    rateLimit: '5 req/min',
+    securityNotes: 'Constant-time verification and generic error messages protect against enumeration.',
   },
   {
     method: 'POST',
@@ -39,7 +39,7 @@ export const AUTH_ENDPOINTS: EndpointDoc[] = [
     requestBody: { idToken: 'string', countryId: 'string (optional)', phoneNumber: 'string (optional)' },
     statusCodes: { 200: 'Reused existing account and issued tokens', 201: 'Created new account via Google SSO' },
     isIdempotent: false,
-    rateLimit: '15 req/min',
+    rateLimit: '10 req/min',
     securityNotes: 'Verifies ID token with Google. Automatically syncs email verification.',
   },
   {
@@ -48,7 +48,7 @@ export const AUTH_ENDPOINTS: EndpointDoc[] = [
     purpose: 'Revoke the currently active session',
     authRequired: true,
     headers: { Authorization: 'Bearer <access_token>' },
-    statusCodes: { 200: 'Session revoked', 401: 'Unauthorized' },
+    statusCodes: { 200: 'Session revoked', 401: 'Unauthorized / Revoked', 403: 'Email not verified' },
     isIdempotent: true,
     securityNotes: 'Session marked revoked in D1 sessions database.',
   },
@@ -68,7 +68,7 @@ export const AUTH_ENDPOINTS: EndpointDoc[] = [
     purpose: 'Fetch current authenticated user profile and account details',
     authRequired: true,
     headers: { Authorization: 'Bearer <access_token>' },
-    statusCodes: { 200: 'Profile retrieved', 401: 'Token expired or revoked' },
+    statusCodes: { 200: 'Profile retrieved', 401: 'Token expired or revoked', 403: 'Email not verified' },
     isIdempotent: true,
   },
   {
@@ -79,6 +79,7 @@ export const AUTH_ENDPOINTS: EndpointDoc[] = [
     requestBody: { refreshToken: 'string' },
     statusCodes: { 200: 'Tokens rotated', 401: 'Token invalid/reuse detected' },
     isIdempotent: false,
+    rateLimit: '15 req/min',
     securityNotes: 'Token family reuse detection automatically terminates compromised sessions.',
   },
 ];

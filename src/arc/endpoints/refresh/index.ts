@@ -3,8 +3,10 @@ import { RefreshTokenSchema } from './schema.ts';
 import { processTokenRotation } from './service.ts';
 import { queryOne } from '../../../utils/d1.ts';
 import { createAccessToken } from '../../../utils/jwt.ts';
+import { getRequiredSecret } from '../../../utils/secrets.ts';
 import { sendSuccess, sendError } from '../../../utils/response.ts';
 import { logAuditEvent } from '../../../utils/logger.ts';
+import { rateLimit } from '../../../middleware/rate-limit.ts';
 import type { Bindings } from '../../../types/env.ts';
 import type { AccountType, Role } from '../../../types/auth.ts';
 
@@ -22,27 +24,20 @@ interface AccountAuthData {
   auth_version: number;
 }
 
-refreshRoute.post('/', async (c) => {
+// Priority 3: 15 token refreshes per 60s
+refreshRoute.post('/', rateLimit(15, 60, 'refresh'), async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = RefreshTokenSchema.safeParse(body);
-  if (!parsed.success) {
-    return sendError(c, 'Invalid refresh token payload', 400, 'VALIDATION_ERROR');
-  }
+  if (!parsed.success) return sendError(c, 'Invalid refresh token payload', 400, 'VALIDATION_ERROR');
 
   const { DB_SESSIONS, DB_ACCOUNTS, DB_AUDIT } = c.env;
-  if (!DB_SESSIONS || !DB_ACCOUNTS) {
-    return sendError(c, 'Service configuration error', 500, 'SERVER_ERROR');
-  }
+  if (!DB_SESSIONS || !DB_ACCOUNTS) return sendError(c, 'Service configuration error', 500, 'SERVER_ERROR');
 
   const rotResult = await processTokenRotation(DB_SESSIONS, parsed.data.refreshToken);
   const ip = c.req.header('cf-connecting-ip') || '127.0.0.1';
 
   if (!rotResult.success || !rotResult.session || !rotResult.newRefreshToken) {
-    await logAuditEvent(DB_AUDIT, {
-      eventType: 'TOKEN_REFRESH_FAILED',
-      ipAddress: ip,
-      metadata: { reason: rotResult.error },
-    });
+    await logAuditEvent(DB_AUDIT, { eventType: 'TOKEN_REFRESH_FAILED', ipAddress: ip, metadata: { reason: rotResult.error } });
     return sendError(c, rotResult.error || 'Refresh failed', 401, 'INVALID_REFRESH_TOKEN');
   }
 
@@ -56,7 +51,7 @@ refreshRoute.post('/', async (c) => {
     return sendError(c, 'Account is inactive or disabled', 403, 'ACCOUNT_DISABLED');
   }
 
-  const jwtSecret = c.env.JWT_ACCESS_SECRET || 'housika_default_access_secret_min16';
+  const jwtSecret = getRequiredSecret(c.env, 'JWT_ACCESS_SECRET');
   const newAccessToken = await createAccessToken(
     {
       accountId: account.id,
@@ -73,18 +68,10 @@ refreshRoute.post('/', async (c) => {
   );
 
   await logAuditEvent(DB_AUDIT, {
-    actorId: account.id,
-    targetId: rotResult.session.id,
-    eventType: 'TOKEN_REFRESH_SUCCESS',
-    ipAddress: ip,
+    actorId: account.id, targetId: rotResult.session.id, eventType: 'TOKEN_REFRESH_SUCCESS', ipAddress: ip,
   });
 
   return sendSuccess(c, {
-    tokens: {
-      accessToken: newAccessToken,
-      refreshToken: rotResult.newRefreshToken,
-      tokenType: 'Bearer',
-      expiresIn: 900,
-    },
+    tokens: { accessToken: newAccessToken, refreshToken: rotResult.newRefreshToken, tokenType: 'Bearer', expiresIn: 900 },
   });
 });

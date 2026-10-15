@@ -16,6 +16,9 @@ export interface CountryRecord {
 
 // Strictly prevents any Housika internal staff role/account creation on signup
 export function resolveSignupRole(accountType: 'individual' | 'company', requestedRole?: Role) {
+  if ((accountType as string) === 'housika') {
+    throw new Error('Housika platform staff accounts cannot be created via public signup.');
+  }
   if (accountType === 'individual') {
     const validRoles: Role[] = ['tenant', 'landlord', 'dual'];
     const role = requestedRole && validRoles.includes(requestedRole) ? requestedRole : 'tenant';

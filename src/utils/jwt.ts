@@ -18,7 +18,7 @@ export interface CreateTokenParams {
 export async function createAccessToken(
   params: CreateTokenParams,
   secret: string,
-  issuer = 'https://auth.housika.com'
+  issuer = 'https://auth.housika.co.ke'
 ): Promise<string> {
   const now = nowUtc();
   const payload: AccessTokenPayload = {

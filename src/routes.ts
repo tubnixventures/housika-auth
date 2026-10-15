@@ -15,6 +15,7 @@ import { refreshRoute } from './arc/endpoints/refresh/index.ts';
 import { upgradeAccountRoute } from './arc/endpoints/upgrade-account/index.ts';
 import { phoneLinkRoute } from './arc/endpoints/phone-link/index.ts';
 import { phoneVerifyRoute } from './arc/endpoints/phone-verify/index.ts';
+import { internalStaffRoute } from './arc/endpoints/internal-staff/index.ts';
 import { countriesRoute } from './arc/endpoints/countries/index.ts';
 import { countryByIdRoute } from './arc/endpoints/country-by-id/index.ts';
 import { countryCreateRoute } from './arc/endpoints/country-create/index.ts';
@@ -43,6 +44,9 @@ export function registerRoutes(app: Hono<{ Bindings: Bindings }>): void {
   app.route('/auth/reset', resetRoute);
   app.route('/auth/change-password', changePasswordRoute);
   app.route('/auth/upgrade-account', upgradeAccountRoute);
+
+  // Internal Provisioning (Authenticated by Service Key)
+  app.route('/auth/internal/staff', internalStaffRoute);
 
   // Countries
   app.route('/countries', countryCreateRoute);

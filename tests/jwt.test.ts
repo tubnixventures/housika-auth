@@ -24,6 +24,6 @@ describe('JWT Access Token Generation and Verification', () => {
     expect(payload.sid).toBe('sess_1234567890');
     expect(payload.role).toBe('tenant');
     expect(payload.level).toBe(20);
-    expect(payload.iss).toBe('https://auth.housika.com');
+    expect(payload.iss).toBe('https://auth.housika.co.ke');
   });
 });

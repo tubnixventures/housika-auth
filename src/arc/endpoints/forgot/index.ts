@@ -4,6 +4,7 @@ import { findAccountByIdentifier } from '../login/service.ts';
 import { generateOtp, generateChallengeId } from '../../../utils/ids.ts';
 import { nowUtc, addMinutes, TOKEN_EXPIRY } from '../../../utils/time.ts';
 import { sha256, hmacSha256 } from '../../../utils/security.ts';
+import { getRequiredSecret } from '../../../utils/secrets.ts';
 import { execute } from '../../../utils/d1.ts';
 import { sendSuccess } from '../../../utils/response.ts';
 import { logAuditEvent } from '../../../utils/logger.ts';
@@ -14,7 +15,8 @@ import type { Bindings } from '../../../types/env.ts';
 
 export const forgotRoute = new Hono<{ Bindings: Bindings }>();
 
-forgotRoute.post('/', rateLimit(5, 60), async (c) => {
+// Priority 3: 3 password reset requests per 60s
+forgotRoute.post('/', rateLimit(3, 60, 'forgot-pw'), async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = ForgotPasswordSchema.safeParse(body);
   const genericResponse = {
@@ -29,10 +31,9 @@ forgotRoute.post('/', rateLimit(5, 60), async (c) => {
   const account = await findAccountByIdentifier(DB_ACCOUNTS, parsed.data.identifier);
   if (!account) return sendSuccess(c, genericResponse);
 
-  // Since SMS service is unavailable, all recovery codes are dispatched to verified email
   const otp = generateOtp();
   const destHash = await sha256(account.email);
-  const hmacSecret = c.env.CHALLENGE_HMAC_SECRET || 'housika_default_hmac_secret_min16';
+  const hmacSecret = getRequiredSecret(c.env, 'CHALLENGE_HMAC_SECRET');
   const secretHash = await hmacSha256(otp, hmacSecret);
   const now = nowUtc();
 
@@ -44,24 +45,15 @@ forgotRoute.post('/', rateLimit(5, 60), async (c) => {
   );
 
   const { subject, html } = renderOtpEmail(otp, 'password_reset');
-  c.executionCtx?.waitUntil?.(
-    sendZeptoEmail({
-      toEmail: account.email,
-      subject,
-      htmlContent: html,
-      apiKey: c.env.ZEPTOMAIL_API_KEY,
-      fromAddress: c.env.ZEPTOMAIL_FROM_ADDRESS,
-      fromName: c.env.ZEPTOMAIL_FROM_NAME,
-    })
-  );
+  c.executionCtx?.waitUntil?.(sendZeptoEmail({
+    toEmail: account.email, subject, htmlContent: html, apiKey: c.env.ZEPTOMAIL_API_KEY,
+    fromAddress: c.env.ZEPTOMAIL_FROM_ADDRESS, fromName: c.env.ZEPTOMAIL_FROM_NAME,
+  }));
 
   const ip = c.req.header('cf-connecting-ip') || '127.0.0.1';
   await logAuditEvent(DB_AUDIT, {
-    actorId: account.id,
-    targetId: account.id,
-    eventType: 'PASSWORD_RESET_REQUESTED',
-    ipAddress: ip,
-    metadata: { channel: 'email', fallbackFromSms: true },
+    actorId: account.id, targetId: account.id, eventType: 'PASSWORD_RESET_REQUESTED',
+    ipAddress: ip, metadata: { channel: 'email' },
   });
 
   return sendSuccess(c, genericResponse);

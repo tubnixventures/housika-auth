@@ -9,7 +9,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     requestBody: { channel: "'email'", purpose: "'email_verification'", identifier: 'string (optional if authenticated)' },
     statusCodes: { 200: 'OTP challenge generated', 400: 'Bad request / SMS inactive' },
     isIdempotent: false,
-    rateLimit: '5 req/min',
+    rateLimit: '3 req/min',
   },
   {
     method: 'POST',
@@ -19,6 +19,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     requestBody: { otp: 'string (6 digits)', purpose: "'email_verification'" },
     statusCodes: { 200: 'Account verified and active', 400: 'Invalid/expired OTP' },
     isIdempotent: false,
+    rateLimit: '5 req/min',
     securityNotes: 'HMAC protected; max 5 attempts before challenge invalidation.',
   },
   {
@@ -28,7 +29,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     authRequired: true,
     headers: { Authorization: 'Bearer <access_token>' },
     requestBody: { phoneNumber: 'string (international format)' },
-    statusCodes: { 200: 'Phone number linked to account', 409: 'Phone already in use' },
+    statusCodes: { 200: 'Phone number linked to account', 403: 'Email not verified', 409: 'Phone already in use' },
     isIdempotent: false,
   },
   {
@@ -39,7 +40,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     requestBody: { identifier: 'string (email or phone)' },
     statusCodes: { 200: 'Generic message returned (anti-enumeration)' },
     isIdempotent: false,
-    rateLimit: '5 req/min',
+    rateLimit: '3 req/min',
   },
   {
     method: 'POST',
@@ -49,6 +50,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     requestBody: { identifier: 'string', otp: 'string', newPassword: 'string' },
     statusCodes: { 200: 'Password reset and sessions revoked', 400: 'Invalid OTP' },
     isIdempotent: false,
+    rateLimit: '5 req/min',
     securityNotes: 'Revokes all active sessions upon password reset.',
   },
   {
@@ -58,7 +60,7 @@ export const RECOVERY_ENDPOINTS: EndpointDoc[] = [
     authRequired: true,
     headers: { Authorization: 'Bearer <access_token>' },
     requestBody: { currentPassword: 'string', newPassword: 'string', revokeOtherSessions: 'boolean' },
-    statusCodes: { 200: 'Password changed', 401: 'Incorrect current password' },
+    statusCodes: { 200: 'Password changed', 401: 'Incorrect current password', 403: 'Email not verified' },
     isIdempotent: false,
   },
   {

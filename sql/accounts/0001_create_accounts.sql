@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- Housika Authentication System - Database 1 of 6: Accounts
 -- Table: accounts (Strictly 1 table per D1 database)
--- Supports native signup and Google OAuth SSO with conflict prevention
+-- Supports native signup, Google OAuth SSO, and platform staff accounts
 -- ==============================================================================
 
 CREATE TABLE IF NOT EXISTS accounts (
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS accounts (
   google_id TEXT UNIQUE,
   password_hash TEXT NOT NULL,
   country_id TEXT NOT NULL,
-  account_type TEXT NOT NULL CHECK (account_type IN ('company', 'individual')),
+  account_type TEXT NOT NULL CHECK (account_type IN ('housika', 'company', 'individual')),
   role TEXT NOT NULL CHECK (role IN ('root', 'ceo', 'admin', 'manager', 'customercare', 'landlord', 'dual', 'tenant')),
   level INTEGER NOT NULL CHECK (level BETWEEN 1 AND 100),
   scope_id TEXT,

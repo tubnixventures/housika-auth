@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { AUTH_ENDPOINTS } from './registry-auth.ts';
 import { RECOVERY_ENDPOINTS } from './registry-recovery.ts';
 import { COUNTRY_ENDPOINTS } from './registry-countries.ts';
+import { INTERNAL_ENDPOINTS } from './registry-internal.ts';
 import type { ApiDocRegistry } from './schema.ts';
 
 export const docsRoute = new Hono();
@@ -11,7 +12,7 @@ const registry: ApiDocRegistry = {
   version: '1.0.0',
   description: 'Production-ready Cloudflare Workers backend for Housika Authentication',
   baseUrl: 'https://auth.housika.co.ke',
-  endpoints: [...AUTH_ENDPOINTS, ...RECOVERY_ENDPOINTS, ...COUNTRY_ENDPOINTS],
+  endpoints: [...AUTH_ENDPOINTS, ...RECOVERY_ENDPOINTS, ...COUNTRY_ENDPOINTS, ...INTERNAL_ENDPOINTS],
 };
 
 docsRoute.get('/', (c) => {

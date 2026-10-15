@@ -1,4 +1,4 @@
-export type AccountType = 'company' | 'individual';
+export type AccountType = 'housika' | 'company' | 'individual';
 
 export type Role =
   | 'root'
@@ -33,6 +33,14 @@ export const COMPANY_ROLE_LEVELS: Record<string, number> = {
   admin: 60,
   manager: 55,
   customercare: 50,
+};
+
+export const HOUSIKA_ROLE_LEVELS: Record<string, number> = {
+  root: 100,
+  ceo: 90,
+  admin: 85,
+  manager: 80,
+  customercare: 75,
 };
 
 export interface AccessTokenPayload {
